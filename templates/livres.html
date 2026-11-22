@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Bibliothèque</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Ma Bibliothèque</h1>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('hub') }}">Accueil</a>
+            <a href="{{ url_for('index') }}">DVD</a>
+            <a href="{{ url_for('cd_list') }}">CD</a>
+            <a href="{{ url_for('books_list') }}">Livres</a>
+        </nav>
+
+        <a href="#ajouter-livre" class="btn-add">+ Ajouter un livre</a>
+    </header>
+
+    <main>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <section id="ajouter-livre" class="form-container page-search-box">
+            <h2>Ajouter un livre (Google Books)</h2>
+            <form method="POST" action="{{ url_for('books_list') }}">
+                <input type="hidden" name="action" value="search">
+                <input
+                    type="text"
+                    name="query"
+                    value="{{ query_text }}"
+                    placeholder="Titre, auteur ou ISBN (ex: 9782070360024)"
+                    required
+                >
+                <button type="submit">Rechercher sur Google Books</button>
+            </form>
+        </section>
+
+        {% if search_results %}
+            <h2 class="section-title">Résultats de recherche</h2>
+            <section class="grid-container" style="margin-bottom: 35px;">
+                {% for item in search_results %}
+                <div class="card">
+                    {% if item.cover_url %}
+                        <img src="{{ item.cover_url }}" alt="Couverture de {{ item.title }}" class="poster">
+                    {% endif %}
+                    <div class="card-info">
+                        <h3>{{ item.title }} {% if item.year %}<span class="year">({{ item.year }})</span>{% endif %}</h3>
+                        <p><strong>Auteur :</strong> {{ item.author }}</p>
+                        {% if item.page_count %}
+                            <p><strong>Pages :</strong> {{ item.page_count }}</p>
+                        {% endif %}
+                        {% if item.summary %}
+                            <p class="synopsis">{{ item.summary }}</p>
+                        {% endif %}
+
+                        <form method="POST" action="{{ url_for('books_list') }}">
+                            <input type="hidden" name="action" value="save">
+                            <input type="hidden" name="google_id" value="{{ item.google_id or '' }}">
+                            <input type="hidden" name="title" value="{{ item.title }}">
+                            <input type="hidden" name="author" value="{{ item.author }}">
+                            <input type="hidden" name="year" value="{{ item.year or '' }}">
+                            <input type="hidden" name="summary" value="{{ item.summary or '' }}">
+                            <input type="hidden" name="cover_url" value="{{ item.cover_url or '' }}">
+                            <input type="hidden" name="isbn" value="{{ item.isbn or '' }}">
+                            <input type="hidden" name="page_count" value="{{ item.page_count or '' }}">
+                            <button type="submit">+ Ajouter</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <h2 class="section-title">Livres enregistrés ({{ books | length }})</h2>
+        <form method="GET" action="{{ url_for('books_list') }}" class="search-form filter-row">
+            <input
+                type="text"
+                name="q"
+                value="{{ collection_query }}"
+                placeholder="Filtrer mes livres (titre, auteur, ISBN)..."
+                class="search-input"
+            >
+            <button type="submit" class="btn-search">Filtrer</button>
+            {% if collection_query %}
+                <a href="{{ url_for('books_list') }}" class="btn-reset">✖ Reset</a>
+            {% endif %}
+        </form>
+
+        <section class="grid-container">
+            {% for book in books %}
+            <div class="card">
+                {% if book.cover_url %}
+                    <img src="{{ book.cover_url }}" alt="Couverture de {{ book.title }}" class="poster">
+                {% endif %}
+                <div class="card-info">
+                    <h3>{{ book.title }} {% if book.year %}<span class="year">({{ book.year }})</span>{% endif %}</h3>
+                    <p><strong>Auteur :</strong> {{ book.author }}</p>
+                    {% if book.page_count %}
+                        <p><strong>Pages :</strong> {{ book.page_count }}</p>
+                    {% endif %}
+                    {% if book.summary %}
+                        <p class="synopsis">{{ book.summary }}</p>
+                    {% endif %}
+
+                    <form action="{{ url_for('delete_book', book_id=book.id) }}" method="POST" onsubmit="return confirm('Supprimer ce livre ?');">
+                        <button type="submit">🗑️ Supprimer</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p class="empty-msg">Aucun livre enregistré dans la collection.</p>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>
