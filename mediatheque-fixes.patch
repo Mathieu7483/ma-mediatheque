@@ -1,0 +1,239 @@
+diff --git a/app.py b/app.py
+index 995270e..54b3999 100644
+--- a/app.py
++++ b/app.py
+@@ -5,7 +5,7 @@ import requests
+ 
+ from database import Database
+ from services.books_service import search_book
+-from services.discogs_service import get_release_details, search_albums
++from services.discogs_service import get_release_details, is_authenticated, search_albums
+ from services.tmdb_service import search_and_get_movie_details
+ 
+ 
+@@ -177,6 +177,11 @@ def cd_list():
+                     )
+                     if not search_results:
+                         error = "Aucun album CD trouvé sur Discogs pour cette recherche."
++                    elif not is_authenticated():
++                        error = (
++                            "DISCOGS_TOKEN absent : Discogs ne fournit alors ni pochettes ni "
++                            "tracklists. Ajoute ton token dans le fichier .env."
++                        )
+                 except requests.HTTPError as exc:
+                     status = exc.response.status_code if exc.response is not None else "inconnu"
+                     error = f"Erreur HTTP Discogs ({status}). Vérifie ton token ou ta requête."
+@@ -198,7 +203,20 @@ def cd_list():
+                     "styles": request.form.get("styles", "").strip(),
+                     "barcode": request.form.get("barcode", "").strip() or None,
+                     "cover_url": request.form.get("cover_url", "").strip() or None,
++                    "tracklist": "",
+                 }
++
++                # La recherche Discogs ne renvoie pas la tracklist : on la récupère ici,
++                # une seule fois, pour l'album choisi (évite 6 appels par recherche).
++                if album_data["discogs_id"]:
++                    try:
++                        details = get_release_details(album_data["discogs_id"])
++                        if details:
++                            album_data["cover_url"] = details["cover_url"] or album_data["cover_url"]
++                            album_data["tracklist"] = details["tracklist_text"]
++                    except requests.RequestException:
++                        flash("Album ajouté, mais pochette/tracklist indisponibles (Discogs).", "info")
++
+                 db.add_album(album_data)
+                 flash(f"« {title} » ({artist}) ajouté à la CDthèque.", "success")
+                 return redirect(url_for("cd_list"))
+diff --git a/services/books_service.py b/services/books_service.py
+index 36f9644..458fd83 100644
+--- a/services/books_service.py
++++ b/services/books_service.py
+@@ -1,10 +1,18 @@
+ import os
+ import re
++import time
+ from typing import Any
+ import requests
+ 
+ GOOGLE_BOOKS_URL = "https://www.googleapis.com/books/v1/volumes"
++OPEN_LIBRARY_URL = "https://openlibrary.org/search.json"
++OPEN_LIBRARY_COVER_URL = "https://covers.openlibrary.org/b/id/{cover_id}-M.jpg"
+ DEFAULT_TIMEOUT = 10
++MAX_RETRIES = 2          # nombre de nouvelles tentatives après un 429 / 5xx
++CACHE_TTL_SECONDS = 600  # 10 min : évite de re-solliciter l'API pour la même recherche
++
++_HEADERS = {"User-Agent": os.getenv("BOOKS_USER_AGENT", "MathieuMediatheque/1.0")}
++_cache: dict[tuple[str, int, str], tuple[float, list[dict[str, Any]]]] = {}
+ 
+ 
+ def _extract_year(published_date: str | None) -> int | None:
+@@ -44,42 +52,36 @@ def _extract_isbn(identifiers: list[dict[str, str]] | None) -> str | None:
+     return isbn_13 or isbn_10
+ 
+ 
+-def search_book(query: str, max_results: int = 1, lang: str = "fr") -> list[dict[str, Any]]:
+-    """
+-    Recherche un livre sur Google Books par titre, auteur ou ISBN.
++def _get_with_retry(url: str, params: dict[str, Any]) -> requests.Response:
++    """GET avec nouvelles tentatives (backoff) sur 429 et 5xx. Respecte Retry-After si court."""
++    response = requests.get(url, params=params, headers=_HEADERS, timeout=DEFAULT_TIMEOUT)
++    for attempt in range(MAX_RETRIES):
++        if response.status_code != 429 and response.status_code < 500:
++            break
++        retry_after = response.headers.get("Retry-After", "")
++        delay = int(retry_after) if retry_after.isdigit() else 2 ** attempt
++        time.sleep(min(delay, 5))
++        response = requests.get(url, params=params, headers=_HEADERS, timeout=DEFAULT_TIMEOUT)
++    response.raise_for_status()
++    return response
+ 
+-    Retourne une liste de dictionnaires normalisés pour la Médiathèque.
+-    """
+-    cleaned_query = query.strip()
+-    if not cleaned_query:
+-        return []
+-
+-    # Si l'utilisateur saisit un ISBN (10 ou 13 chiffres avec éventuels tirets/espaces)
+-    normalized_isbn = re.sub(r"[-\s]", "", cleaned_query)
+-    if re.fullmatch(r"(?:\d{10}|\d{13}|\d{9}[\dXx])", normalized_isbn):
+-        q_param = f"isbn:{normalized_isbn}"
+-    else:
+-        q_param = cleaned_query
+ 
++def _search_google_books(q_param: str, max_results: int, lang: str) -> list[dict[str, Any]]:
+     params: dict[str, Any] = {
+         "q": q_param,
+         "maxResults": max(1, min(max_results, 40)),
+         "printType": "books",
+         "langRestrict": lang,
+     }
+-
++    # Sans clé, le quota Google est partagé par IP et saturé très vite (429).
+     api_key = os.getenv("GOOGLE_BOOKS_API_KEY")
+     if api_key:
+         params["key"] = api_key
+ 
+-    response = requests.get(GOOGLE_BOOKS_URL, params=params, timeout=DEFAULT_TIMEOUT)
+-    response.raise_for_status()
+-    payload = response.json()
++    payload = _get_with_retry(GOOGLE_BOOKS_URL, params).json()
+ 
+-    items = payload.get("items") or []
+     results: list[dict[str, Any]] = []
+-
+-    for item in items:
++    for item in payload.get("items") or []:
+         volume_info = item.get("volumeInfo") or {}
+         authors = volume_info.get("authors") or []
+         author_str = ", ".join(authors) if authors else "Auteur inconnu"
+@@ -96,11 +98,79 @@ def search_book(query: str, max_results: int = 1, lang: str = "fr") -> list[dict
+             "isbn": _extract_isbn(volume_info.get("industryIdentifiers")),
+             "page_count": volume_info.get("pageCount"),
+         })
++    return results
++
++
++def _search_open_library(q_param: str, max_results: int) -> list[dict[str, Any]]:
++    """Repli gratuit et sans clé : Open Library."""
++    params: dict[str, Any] = {
++        "q": q_param,
++        "limit": max(1, min(max_results, 40)),
++        "fields": "key,title,subtitle,author_name,first_publish_year,isbn,cover_i,number_of_pages_median",
++    }
++    payload = _get_with_retry(OPEN_LIBRARY_URL, params).json()
++
++    results: list[dict[str, Any]] = []
++    for doc in payload.get("docs") or []:
++        authors = doc.get("author_name") or []
++        author_str = ", ".join(authors) if authors else "Auteur inconnu"
++        isbns = doc.get("isbn") or []
++        isbn_13 = next((i for i in isbns if len(i) == 13), None)
++        cover_id = doc.get("cover_i")
++
++        results.append({
++            "google_id": None,
++            "title": doc.get("title") or "Titre inconnu",
++            "subtitle": doc.get("subtitle"),
++            "author": author_str,
++            "creator": author_str,
++            "year": doc.get("first_publish_year"),
++            "summary": "Aucun résumé disponible.",
++            "cover_url": OPEN_LIBRARY_COVER_URL.format(cover_id=cover_id) if cover_id else None,
++            "isbn": isbn_13 or (isbns[0] if isbns else None),
++            "page_count": doc.get("number_of_pages_median"),
++        })
++    return results
++
++
++def search_book(query: str, max_results: int = 1, lang: str = "fr") -> list[dict[str, Any]]:
++    """
++    Recherche un livre par titre, auteur ou ISBN.
++
++    Google Books en premier (avec retry sur 429), puis Open Library en repli.
++    Les résultats sont gardés en cache quelques minutes.
++    Lève requests.RequestException seulement si les deux services échouent.
++    """
++    cleaned_query = query.strip()
++    if not cleaned_query:
++        return []
++
++    cache_key = (cleaned_query.lower(), max_results, lang)
++    cached = _cache.get(cache_key)
++    if cached and time.time() - cached[0] < CACHE_TTL_SECONDS:
++        return cached[1]
++
++    # Si l'utilisateur saisit un ISBN (10 ou 13 chiffres avec éventuels tirets/espaces)
++    normalized_isbn = re.sub(r"[-\s]", "", cleaned_query)
++    if re.fullmatch(r"(?:\d{10}|\d{13}|\d{9}[\dXx])", normalized_isbn):
++        q_param = f"isbn:{normalized_isbn}"
++    else:
++        q_param = cleaned_query
++
++    try:
++        results = _search_google_books(q_param, max_results, lang)
++        # Google ne trouve rien : on tente Open Library avant de conclure
++        if not results:
++            results = _search_open_library(q_param, max_results)
++    except requests.RequestException:
++        results = _search_open_library(q_param, max_results)
+ 
++    if results:
++        _cache[cache_key] = (time.time(), results)
+     return results
+ 
+ 
+ def get_book(query: str, lang: str = "fr") -> dict[str, Any] | None:
+     """Retourne le premier résultat trouvé pour une requête donnée, ou None."""
+     results = search_book(query=query, max_results=1, lang=lang)
+-    return results[0] if results else None
+\ No newline at end of file
++    return results[0] if results else None
+diff --git a/services/discogs_service.py b/services/discogs_service.py
+index 01da481..94eeb72 100644
+--- a/services/discogs_service.py
++++ b/services/discogs_service.py
+@@ -7,6 +7,11 @@ DISCOGS_RELEASE_URL = "https://api.discogs.com/releases/{release_id}"
+ DEFAULT_TIMEOUT = 10
+ 
+ 
++def is_authenticated() -> bool:
++    """Sans token, Discogs renvoie des images vides (spacer.gif) : pas de pochettes."""
++    return bool(os.getenv("DISCOGS_TOKEN"))
++
++
+ def _get_headers() -> dict[str, str]:
+     """Discogs exige un User-Agent explicite ; on y joint le token s'il est défini."""
+     user_agent = os.getenv("DISCOGS_USER_AGENT", "MathieuMediatheque/1.0")
+diff --git a/templates/cd.html b/templates/cd.html
+index 91f41f0..95696f9 100644
+--- a/templates/cd.html
++++ b/templates/cd.html
+@@ -114,7 +114,7 @@
+                     {% if album.tracklist %}
+                         <details class="tracklist">
+                             <summary>Tracklist</summary>
+-                            <p>{{ album.tracklist | replace('\n', '<br>') | safe }}</p>
++                            <p style="white-space: pre-line;">{{ album.tracklist }}</p>
+                         </details>
+                     {% endif %}
+ 

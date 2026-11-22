@@ -114,7 +114,7 @@
                     {% if album.tracklist %}
                         <details class="tracklist">
                             <summary>Tracklist</summary>
-                            <p>{{ album.tracklist | replace('\n', '<br>') | safe }}</p>
+                            <p style="white-space: pre-line;">{{ album.tracklist }}</p>
                         </details>
                     {% endif %}
 

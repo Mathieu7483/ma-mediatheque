@@ -7,6 +7,11 @@ DISCOGS_RELEASE_URL = "https://api.discogs.com/releases/{release_id}"
 DEFAULT_TIMEOUT = 10
 
 
+def is_authenticated() -> bool:
+    """Sans token, Discogs renvoie des images vides (spacer.gif) : pas de pochettes."""
+    return bool(os.getenv("DISCOGS_TOKEN"))
+
+
 def _get_headers() -> dict[str, str]:
     """Discogs exige un User-Agent explicite ; on y joint le token s'il est défini."""
     user_agent = os.getenv("DISCOGS_USER_AGENT", "MathieuMediatheque/1.0")

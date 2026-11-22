@@ -5,7 +5,7 @@ import requests
 
 from database import Database
 from services.books_service import search_book
-from services.discogs_service import get_release_details, search_albums
+from services.discogs_service import get_release_details, is_authenticated, search_albums
 from services.tmdb_service import search_and_get_movie_details
 
 
@@ -177,6 +177,11 @@ def cd_list():
                     )
                     if not search_results:
                         error = "Aucun album CD trouvé sur Discogs pour cette recherche."
+                    elif not is_authenticated():
+                        error = (
+                            "DISCOGS_TOKEN absent : Discogs ne fournit alors ni pochettes ni "
+                            "tracklists. Ajoute ton token dans le fichier .env."
+                        )
                 except requests.HTTPError as exc:
                     status = exc.response.status_code if exc.response is not None else "inconnu"
                     error = f"Erreur HTTP Discogs ({status}). Vérifie ton token ou ta requête."
@@ -198,7 +203,20 @@ def cd_list():
                     "styles": request.form.get("styles", "").strip(),
                     "barcode": request.form.get("barcode", "").strip() or None,
                     "cover_url": request.form.get("cover_url", "").strip() or None,
+                    "tracklist": "",
                 }
+
+                # La recherche Discogs ne renvoie pas la tracklist : on la récupère ici,
+                # une seule fois, pour l'album choisi (évite 6 appels par recherche).
+                if album_data["discogs_id"]:
+                    try:
+                        details = get_release_details(album_data["discogs_id"])
+                        if details:
+                            album_data["cover_url"] = details["cover_url"] or album_data["cover_url"]
+                            album_data["tracklist"] = details["tracklist_text"]
+                    except requests.RequestException:
+                        flash("Album ajouté, mais pochette/tracklist indisponibles (Discogs).", "info")
+
                 db.add_album(album_data)
                 flash(f"« {title} » ({artist}) ajouté à la CDthèque.", "success")
                 return redirect(url_for("cd_list"))
