@@ -8,11 +8,22 @@
 </head>
 <body>
     <header>
-        <h1>Mathieu DVDthèque</h1>
-        
-        <form method="GET" action="/" class="search-form">
+        <h1>Ma DVDthèque</h1>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('hub') }}">Accueil</a>
+            <a href="{{ url_for('index') }}">DVD</a>
+            <a href="{{ url_for('cd_list') }}">CD</a>
+            <a href="{{ url_for('books_list') }}">Livres</a>
+        </nav>
+
+        <a href="{{ url_for('add_dvd') }}" class="btn-add">+ Ajouter un DVD</a>
+    </header>
+
+    <main>
+        <form method="GET" action="{{ url_for('index') }}" class="search-form filter-row" style="max-width: 720px;">
             <input type="text" name="q" placeholder="Film, acteur, réal..." value="{{ search }}" class="search-input">
-            
+
             <select name="genre" class="genre-select" onchange="this.form.submit()">
                 <option value="">Tous les genres</option>
                 {% for genre in all_genres %}
@@ -21,16 +32,13 @@
             </select>
 
             <button type="submit" class="btn-search">Filtrer</button>
-            
+
             {% if search or selected_genre %}
                 <a href="{{ url_for('index') }}" class="btn-reset">✖ Reset</a>
             {% endif %}
         </form>
 
-        <a href="{{ url_for('add_dvd') }}" class="btn-add">+ Ajouter un DVD</a>
-    </header>
-
-    <main class="grid-container">
+        <section class="grid-container">
         {% for dvd in dvds %}
         <div class="card">
     <img src="{{ dvd.poster_url }}" alt="Affiche de {{ dvd.title }}" class="poster">
@@ -49,6 +57,7 @@
         {% else %}
         <p class="empty-msg">Aucun DVD trouvé dans la collection.</p>
         {% endfor %}
+        </section>
     </main>
 </body>
 </html>
