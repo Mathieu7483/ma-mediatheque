@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma Médiathèque</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Ma Médiathèque</h1>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('index') }}">DVD</a>
+            <a href="{{ url_for('cd_list') }}">CD</a>
+            <a href="{{ url_for('books_list') }}">Livres</a>
+        </nav>
+
+        <a href="#ajouter-media" class="btn-add">+ Ajouter un média</a>
+    </header>
+
+    <main>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <section class="media-hub">
+            <div class="hub-card">
+                <div>
+                    <h3>DVDthèque</h3>
+                    <p>Films enregistrés dans ta collection.</p>
+                </div>
+                <div class="hub-count">{{ stats.dvd | default(0) }}</div>
+                <a href="{{ url_for('index') }}" class="btn-add">Voir les DVD</a>
+            </div>
+
+            <div class="hub-card">
+                <div>
+                    <h3>CDthèque</h3>
+                    <p>Albums et éditions CD via Discogs.</p>
+                </div>
+                <div class="hub-count">{{ stats.cd | default(0) }}</div>
+                <a href="{{ url_for('cd_list') }}" class="btn-add">Voir les CD</a>
+            </div>
+
+            <div class="hub-card">
+                <div>
+                    <h3>Bibliothèque</h3>
+                    <p>Livres enregistrés via Google Books.</p>
+                </div>
+                <div class="hub-count">{{ stats.books | default(0) }}</div>
+                <a href="{{ url_for('books_list') }}" class="btn-add">Voir les Livres</a>
+            </div>
+        </section>
+
+        <section id="ajouter-media" class="form-container">
+            <h2>Ajouter un média</h2>
+            <form method="POST" action="{{ url_for('add_media') }}">
+                <label for="media_type">Type de média :</label>
+                <select id="media_type" name="media_type" required>
+                    <option value="dvd">DVD (Film)</option>
+                    <option value="cd">CD (Album / Code-barres)</option>
+                    <option value="livre">Livre (Titre, auteur ou ISBN)</option>
+                </select>
+
+                <label for="query">Recherche :</label>
+                <input
+                    type="text"
+                    id="query"
+                    name="query"
+                    placeholder="Ex: Alien Romulus, Daft Punk Discovery, 9782070360024"
+                    required
+                >
+
+                <button type="submit">Rechercher et Ajouter</button>
+            </form>
+        </section>
+
+        <h2 class="section-title">Ajouts récents</h2>
+        <section class="grid-container">
+            {% for item in recent_items %}
+            <div class="card">
+                {% if item.cover_url %}
+                    <img src="{{ item.cover_url }}" alt="{{ item.title }}" class="poster">
+                {% endif %}
+                <div class="card-info">
+                    <p class="genres-tags">{{ item.media_label }}</p>
+                    <h3>{{ item.title }} {% if item.year %}<span class="year">({{ item.year }})</span>{% endif %}</h3>
+                    <p>{{ item.creator }}</p>
+                </div>
+            </div>
+            {% else %}
+            <p class="empty-msg">Aucun élément enregistré pour le moment.</p>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>
