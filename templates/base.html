@@ -1,0 +1,57 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>{% block title %}Ma Médiathèque{% endblock %}</title>
+  <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}" />
+</head>
+<body>
+  <header class="site-header">
+    <div class="container navbar">
+      <a href="{{ url_for('index') }}" class="brand">
+        <span class="brand-mark" aria-hidden="true">◈</span>
+        <span>Ma Médiathèque</span>
+      </a>
+
+      <nav class="nav-links" aria-label="Navigation principale">
+        <a href="{{ url_for('index') }}" class="nav-link {% if request.endpoint == 'index' %}is-active{% endif %}">
+          Accueil
+        </a>
+        <a href="{{ url_for('dvd_list') }}" class="nav-link {% if request.endpoint == 'dvd_list' %}is-active{% endif %}">
+          DVDthèque
+        </a>
+        <a href="{{ url_for('cd_list') }}" class="nav-link {% if request.endpoint == 'cd_list' %}is-active{% endif %}">
+          CDthèque
+        </a>
+        <a href="{{ url_for('books_list') }}" class="nav-link {% if request.endpoint == 'books_list' %}is-active{% endif %}">
+          Bibliothèque
+        </a>
+      </nav>
+
+      <a href="{{ url_for('add_media') }}" class="btn btn-primary">+ Ajouter</a>
+    </div>
+  </header>
+
+  <main class="container page-main">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+      {% if messages %}
+        <div class="flash-stack" role="status">
+          {% for category, message in messages %}
+            <div class="flash flash-{{ category }}">{{ message }}</div>
+          {% endfor %}
+        </div>
+      {% endif %}
+    {% endwith %}
+
+    {% block content %}{% endblock %}
+  </main>
+
+  <footer class="site-footer">
+    <div class="container footer-inner">
+      <span>Ma Médiathèque personnelle — Flask &amp; SQLite</span>
+      <span>DVD · CD · Livres</span>
+    </div>
+  </footer>
+</body>
+</html>
