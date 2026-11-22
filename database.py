@@ -23,13 +23,17 @@ class Database:
                     actors TEXT,
                     genres TEXT,
                     synopsis TEXT,
-                    poster_url TEXT
+                    poster_url TEXT,
+                    created_at TIMESTAMP
                 )
             """)
             cursor = conn.execute("PRAGMA table_info(dvds)")
             columns = [column[1] for column in cursor.fetchall()]
             if "genres" not in columns:
                 conn.execute("ALTER TABLE dvds ADD COLUMN genres TEXT")
+            if "created_at" not in columns:
+                # Les anciens DVD restent à NULL (= "ajoutés avant le suivi des dates")
+                conn.execute("ALTER TABLE dvds ADD COLUMN created_at TIMESTAMP")
 
             # 2. Nouvelle table Albums (CDthèque)
             conn.execute("""
@@ -43,9 +47,13 @@ class Database:
                     styles TEXT,
                     barcode TEXT,
                     cover_url TEXT,
+                    tracklist TEXT,
                     created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
                 )
             """)
+            album_columns = [column[1] for column in conn.execute("PRAGMA table_info(albums)").fetchall()]
+            if "tracklist" not in album_columns:
+                conn.execute("ALTER TABLE albums ADD COLUMN tracklist TEXT")
 
             # 3. Nouvelle table Livres (Bibliothèque)
             conn.execute("""
@@ -72,8 +80,8 @@ class Database:
     def add_dvd(self, dvd_data: dict):
         with self.get_connection() as conn:
             conn.execute("""
-                INSERT INTO dvds (title, year, director, actors, genres, synopsis, poster_url)
-                VALUES (:title, :year, :director, :actors, :genres, :synopsis, :poster_url)
+                INSERT INTO dvds (title, year, director, actors, genres, synopsis, poster_url, created_at)
+                VALUES (:title, :year, :director, :actors, :genres, :synopsis, :poster_url, datetime('now'))
             """, dvd_data)
             conn.commit()
 
@@ -125,11 +133,12 @@ class Database:
             "styles": album_data.get("styles", ""),
             "barcode": album_data.get("barcode"),
             "cover_url": album_data.get("cover_url"),
+            "tracklist": album_data.get("tracklist", ""),
         }
         with self.get_connection() as conn:
             conn.execute("""
-                INSERT INTO albums (discogs_id, title, artist, year, genres, styles, barcode, cover_url)
-                VALUES (:discogs_id, :title, :artist, :year, :genres, :styles, :barcode, :cover_url)
+                INSERT INTO albums (discogs_id, title, artist, year, genres, styles, barcode, cover_url, tracklist)
+                VALUES (:discogs_id, :title, :artist, :year, :genres, :styles, :barcode, :cover_url, :tracklist)
             """, payload)
             conn.commit()
 
@@ -211,13 +220,25 @@ class Database:
         }
 
     def get_recent_items(self, limit: int = 6) -> list:
-        """Retourne les derniers éléments ajoutés toutes collections confondues."""
+        """Retourne les derniers éléments ajoutés toutes collections confondues.
+
+        Le tri se fait sur la date d'ajout (created_at), commune aux trois tables.
+        Trier sur l'id ne marche pas : chaque table a sa propre numérotation, donc
+        les DVD (ids élevés) masqueraient toujours les CD et les livres récents.
+        Les anciens DVD sans date passent après tout ce qui est daté, classés par id.
+        """
         items = []
 
+        def sort_key(row) -> tuple:
+            return (row["created_at"] or "", row["id"])
+
         with self.get_connection() as conn:
-            for row in conn.execute("SELECT id, title, year, director, poster_url FROM dvds ORDER BY id DESC LIMIT ?", (limit,)):
+            for row in conn.execute(
+                "SELECT id, title, year, director, poster_url, created_at FROM dvds "
+                "ORDER BY COALESCE(created_at, '') DESC, id DESC LIMIT ?", (limit,)
+            ):
                 items.append({
-                    "sort_key": row["id"],
+                    "sort_key": sort_key(row),
                     "media_type": "dvd",
                     "media_label": "DVD",
                     "title": row["title"],
@@ -226,9 +247,12 @@ class Database:
                     "cover_url": row["poster_url"],
                 })
 
-            for row in conn.execute("SELECT id, title, year, artist, cover_url FROM albums ORDER BY id DESC LIMIT ?", (limit,)):
+            for row in conn.execute(
+                "SELECT id, title, year, artist, cover_url, created_at FROM albums "
+                "ORDER BY COALESCE(created_at, '') DESC, id DESC LIMIT ?", (limit,)
+            ):
                 items.append({
-                    "sort_key": row["id"],
+                    "sort_key": sort_key(row),
                     "media_type": "cd",
                     "media_label": "CD",
                     "title": row["title"],
@@ -237,9 +261,12 @@ class Database:
                     "cover_url": row["cover_url"],
                 })
 
-            for row in conn.execute("SELECT id, title, year, author, cover_url FROM books ORDER BY id DESC LIMIT ?", (limit,)):
+            for row in conn.execute(
+                "SELECT id, title, year, author, cover_url, created_at FROM books "
+                "ORDER BY COALESCE(created_at, '') DESC, id DESC LIMIT ?", (limit,)
+            ):
                 items.append({
-                    "sort_key": row["id"],
+                    "sort_key": sort_key(row),
                     "media_type": "books",
                     "media_label": "Livre",
                     "title": row["title"],
@@ -249,4 +276,6 @@ class Database:
                 })
 
         items.sort(key=lambda x: x["sort_key"], reverse=True)
+        for item in items:
+            del item["sort_key"]
         return items[:limit]
