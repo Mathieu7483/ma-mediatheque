@@ -1,0 +1,132 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ma CDthèque</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Ma CDthèque</h1>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('hub') }}">Accueil</a>
+            <a href="{{ url_for('index') }}">DVD</a>
+            <a href="{{ url_for('cd_list') }}">CD</a>
+            <a href="{{ url_for('books_list') }}">Livres</a>
+        </nav>
+
+        <a href="#ajouter-cd" class="btn-add">+ Ajouter un CD</a>
+    </header>
+
+    <main>
+        {% if error %}
+            <p class="error">{{ error }}</p>
+        {% endif %}
+
+        <section id="ajouter-cd" class="form-container page-search-box">
+            <h2>Ajouter un CD (Discogs)</h2>
+            <form method="POST" action="{{ url_for('cd_list') }}">
+                <input type="hidden" name="action" value="search">
+                <input
+                    type="text"
+                    name="query"
+                    value="{{ query_text }}"
+                    placeholder="Album ou code-barres (ex: Discovery)"
+                >
+                <input
+                    type="text"
+                    name="artist"
+                    value="{{ artist_text }}"
+                    placeholder="Artiste ou groupe (optionnel, ex: Daft Punk)"
+                >
+                <button type="submit">Rechercher sur Discogs</button>
+            </form>
+        </section>
+
+        {% if search_results %}
+            <h2 class="section-title">Résultats de recherche</h2>
+            <section class="grid-container" style="margin-bottom: 35px;">
+                {% for item in search_results %}
+                <div class="card">
+                    {% if item.cover_url %}
+                        <img src="{{ item.cover_url }}" alt="Pochette de {{ item.title }}" class="poster">
+                    {% endif %}
+                    <div class="card-info">
+                        <h3>{{ item.title }} {% if item.year %}<span class="year">({{ item.year }})</span>{% endif %}</h3>
+                        <p><strong>Artiste :</strong> {{ item.artist }}</p>
+                        {% if item.genres %}
+                            <p class="genres-tags"><strong>Genre :</strong> {{ item.genres }}</p>
+                        {% endif %}
+                        {% if item.styles %}
+                            <p><strong>Style :</strong> {{ item.styles }}</p>
+                        {% endif %}
+
+                        <form method="POST" action="{{ url_for('cd_list') }}">
+                            <input type="hidden" name="action" value="save">
+                            <input type="hidden" name="discogs_id" value="{{ item.discogs_id or '' }}">
+                            <input type="hidden" name="title" value="{{ item.title }}">
+                            <input type="hidden" name="artist" value="{{ item.artist }}">
+                            <input type="hidden" name="year" value="{{ item.year or '' }}">
+                            <input type="hidden" name="genres" value="{{ item.genres or '' }}">
+                            <input type="hidden" name="styles" value="{{ item.styles or '' }}">
+                            <input type="hidden" name="barcode" value="{{ item.barcode or '' }}">
+                            <input type="hidden" name="cover_url" value="{{ item.cover_url or '' }}">
+                            <button type="submit">+ Ajouter</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </section>
+        {% endif %}
+
+        <h2 class="section-title">Albums enregistrés ({{ albums | length }})</h2>
+        <form method="GET" action="{{ url_for('cd_list') }}" class="search-form filter-row">
+            <input
+                type="text"
+                name="q"
+                value="{{ collection_query }}"
+                placeholder="Filtrer mes CD (artiste, titre, genre)..."
+                class="search-input"
+            >
+            <button type="submit" class="btn-search">Filtrer</button>
+            {% if collection_query %}
+                <a href="{{ url_for('cd_list') }}" class="btn-reset">✖ Reset</a>
+            {% endif %}
+        </form>
+
+        <section class="grid-container">
+            {% for album in albums %}
+            <div class="card">
+                {% if album.cover_url %}
+                    <img src="{{ album.cover_url }}" alt="Pochette de {{ album.title }}" class="poster">
+                {% endif %}
+                <div class="card-info">
+                    <h3>{{ album.title }} {% if album.year %}<span class="year">({{ album.year }})</span>{% endif %}</h3>
+                    <p><strong>Artiste :</strong> {{ album.artist }}</p>
+                    {% if album.genres %}
+                        <p class="genres-tags"><strong>Genre :</strong> {{ album.genres }}</p>
+                    {% endif %}
+                    {% if album.styles %}
+                        <p><strong>Style :</strong> {{ album.styles }}</p>
+                    {% endif %}
+                    {% if album.tracklist %}
+                        <details class="tracklist">
+                            <summary>Tracklist</summary>
+                            <p>{{ album.tracklist | replace('\n', '<br>') | safe }}</p>
+                        </details>
+                    {% endif %}
+
+                    <form action="{{ url_for('delete_cd', album_id=album.id) }}" method="POST" onsubmit="return confirm('Supprimer ce CD ?');">
+                        <button type="submit">🗑️ Supprimer</button>
+                    </form>
+                </div>
+            </div>
+            {% else %}
+            <p class="empty-msg">Aucun CD enregistré dans la collection.</p>
+            {% endfor %}
+        </section>
+    </main>
+</body>
+</html>
