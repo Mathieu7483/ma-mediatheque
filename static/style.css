@@ -92,12 +92,31 @@ button:hover {
 }
 
 .synopsis {
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    line-clamp: 3;
-    -webkit-box-orient: vertical;
-    overflow: hidden;
+    max-height: 4.2em;       /* Environ 3 lignes visibles */
+    line-height: 1.4;
+    overflow-y: auto;        /* Active le scroll vertical uniquement si le texte dépasse */
     margin-top: 5px;
+    padding-right: 6px;      /* Évite que la barre de scroll ne colle au texte */
+    scrollbar-width: thin;   /* Barre discrète sur Firefox */
+    scrollbar-color: #252e39 transparent;
+}
+
+/* Barre de scroll fine et assortie au thème sombre (Chrome, Edge, Brave, Safari) */
+.synopsis::-webkit-scrollbar {
+    width: 4px;
+}
+
+.synopsis::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.synopsis::-webkit-scrollbar-thumb {
+    background-color: #252e39;
+    border-radius: 4px;
+}
+
+.synopsis::-webkit-scrollbar-thumb:hover {
+    background-color: #1a98ff;
 }
 
 .form-container {
