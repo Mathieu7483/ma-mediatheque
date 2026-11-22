@@ -25,7 +25,9 @@ h1 {
     color: #1a98ff;
 }
 
-.btn-add, .btn-back, button {
+.btn-add,
+.btn-back,
+button {
     background-color: #1a98ff;
     color: white;
     padding: 10px 20px;
@@ -37,7 +39,8 @@ h1 {
     display: inline-block;
 }
 
-.btn-add:hover, button:hover {
+.btn-add:hover,
+button:hover {
     background-color: #0072ce;
 }
 
@@ -91,6 +94,7 @@ h1 {
 .synopsis {
     display: -webkit-box;
     -webkit-line-clamp: 3;
+    line-clamp: 3;
     -webkit-box-orient: vertical;
     overflow: hidden;
     margin-top: 5px;
@@ -111,7 +115,8 @@ h1 {
     margin-top: 15px;
 }
 
-input[type="text"], select {
+input[type="text"],
+select {
     padding: 10px;
     border-radius: 4px;
     border: 1px solid #252e39;
@@ -264,10 +269,12 @@ input[type="text"], select {
         gap: 15px;
         align-items: stretch;
     }
+
     .search-form {
         max-width: 100%;
         margin: 0;
     }
+
     .nav-links {
         flex-wrap: wrap;
         gap: 12px;
