@@ -11,15 +11,17 @@
         <h1>Ma Médiathèque</h1>
 
         <nav class="nav-links">
+            <a href="{{ url_for('hub') }}">Accueil</a>
             <a href="{{ url_for('index') }}">DVD</a>
             <a href="{{ url_for('cd_list') }}">CD</a>
             <a href="{{ url_for('books_list') }}">Livres</a>
         </nav>
 
-        <a href="#ajouter-media" class="btn-add">+ Ajouter un média</a>
+        <a href="{{ url_for('add_page') }}" class="btn-add">+ Ajouter un média</a>
     </header>
 
     <main>
+        {% include "_flashes.html" %}
         {% if error %}
             <p class="error">{{ error }}</p>
         {% endif %}
@@ -51,29 +53,6 @@
                 <div class="hub-count">{{ stats.books | default(0) }}</div>
                 <a href="{{ url_for('books_list') }}" class="btn-add">Voir les Livres</a>
             </div>
-        </section>
-
-        <section id="ajouter-media" class="form-container">
-            <h2>Ajouter un média</h2>
-            <form method="POST" action="{{ url_for('add_media') }}">
-                <label for="media_type">Type de média :</label>
-                <select id="media_type" name="media_type" required>
-                    <option value="dvd">DVD (Film)</option>
-                    <option value="cd">CD (Album / Code-barres)</option>
-                    <option value="livre">Livre (Titre, auteur ou ISBN)</option>
-                </select>
-
-                <label for="query">Recherche :</label>
-                <input
-                    type="text"
-                    id="query"
-                    name="query"
-                    placeholder="Ex: Alien Romulus, Daft Punk Discovery, 9782070360024"
-                    required
-                >
-
-                <button type="submit">Rechercher et Ajouter</button>
-            </form>
         </section>
 
         <h2 class="section-title">Ajouts récents</h2>

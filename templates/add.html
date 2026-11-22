@@ -3,21 +3,111 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Ajouter un DVD</title>
+    <title>Ajouter un média</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
 </head>
 <body>
-    <div class="form-container">
-        <h2>Ajouter un DVD</h2>
+    <header>
+        <h1>Ajouter un {{ media_types[media_type] }}</h1>
+
+        <nav class="nav-links">
+            <a href="{{ url_for('hub') }}">Accueil</a>
+            <a href="{{ url_for('index') }}">DVD</a>
+            <a href="{{ url_for('cd_list') }}">CD</a>
+            <a href="{{ url_for('books_list') }}">Livres</a>
+        </nav>
+
+        <a href="{{ url_for({'dvd': 'index', 'cd': 'cd_list', 'livre': 'books_list'}[media_type]) }}" class="btn-back">Retour à ma collection</a>
+    </header>
+
+    <main>
         {% if error %}
             <p class="error">{{ error }}</p>
         {% endif %}
-        <form method="POST">
-            <label for="title">Titre du film :</label>
-            <input type="text" id="title" name="title" placeholder="Ex: Alien Romulus" required autofocus>
-            <button type="submit">Rechercher et Ajouter</button>
-        </form>
-        <a href="{{ url_for('index') }}" class="btn-back">Retour au catalogue</a>
-    </div>
+
+        <nav class="type-tabs" aria-label="Type de média">
+            {% for key, label in media_types.items() %}
+                <a href="{{ url_for('add_page', type=key) }}" class="{% if key == media_type %}is-active{% endif %}">{{ label }}</a>
+            {% endfor %}
+        </nav>
+
+        <section class="form-container page-search-box">
+            <form method="GET" action="{{ url_for('add_page') }}">
+                <input type="hidden" name="type" value="{{ media_type }}">
+
+                {% if media_type == 'dvd' %}
+                    <label for="query">Titre du film ou de la série :</label>
+                    <input type="text" id="query" name="query" value="{{ query }}" placeholder="Ex: Alien Romulus" required autofocus>
+                {% elif media_type == 'cd' %}
+                    <label for="query">Album ou code-barres :</label>
+                    <input type="text" id="query" name="query" value="{{ query }}" placeholder="Ex: Discovery" autofocus>
+                    <label for="artist">Artiste ou groupe (optionnel) :</label>
+                    <input type="text" id="artist" name="artist" value="{{ artist }}" placeholder="Ex: Daft Punk">
+                {% else %}
+                    <label for="query">Titre, auteur ou ISBN :</label>
+                    <input type="text" id="query" name="query" value="{{ query }}" placeholder="Ex: 9782070360024" required autofocus>
+                {% endif %}
+
+                <button type="submit">Rechercher</button>
+            </form>
+        </section>
+
+        {% if results %}
+            <h2 class="section-title">Choisis le bon résultat</h2>
+            <section class="grid-container">
+                {% for item in results %}
+                <div class="card">
+                    {% set cover = item.poster_url if media_type == 'dvd' else item.cover_url %}
+                    {% if cover %}
+                        <img src="{{ cover }}" alt="Visuel de {{ item.title }}" class="poster">
+                    {% endif %}
+                    <div class="card-info">
+                        <h3>{{ item.title }} {% if item.year %}<span class="year">({{ item.year }})</span>{% endif %}</h3>
+
+                        {% if media_type == 'dvd' %}
+                            <p class="genres-tags">{{ 'Série' if item.kind == 'tv' else 'Film' }}</p>
+                            {% if item.overview %}<p class="synopsis">{{ item.overview }}</p>{% endif %}
+                        {% elif media_type == 'cd' %}
+                            <p><strong>Artiste :</strong> {{ item.artist }}</p>
+                            {% if item.genres %}<p class="genres-tags"><strong>Genre :</strong> {{ item.genres }}</p>{% endif %}
+                            {% if item.styles %}<p><strong>Style :</strong> {{ item.styles }}</p>{% endif %}
+                        {% else %}
+                            <p><strong>Auteur :</strong> {{ item.author }}</p>
+                            {% if item.page_count %}<p><strong>Pages :</strong> {{ item.page_count }}</p>{% endif %}
+                            {% if item.summary %}<p class="synopsis">{{ item.summary }}</p>{% endif %}
+                        {% endif %}
+
+                        <form method="POST" action="{{ url_for('add_page') }}">
+                            <input type="hidden" name="type" value="{{ media_type }}">
+                            {% if media_type == 'dvd' %}
+                                <input type="hidden" name="tmdb_id" value="{{ item.tmdb_id }}">
+                                <input type="hidden" name="tmdb_kind" value="{{ item.kind }}">
+                            {% elif media_type == 'cd' %}
+                                <input type="hidden" name="discogs_id" value="{{ item.discogs_id or '' }}">
+                                <input type="hidden" name="title" value="{{ item.title }}">
+                                <input type="hidden" name="artist" value="{{ item.artist }}">
+                                <input type="hidden" name="year" value="{{ item.year or '' }}">
+                                <input type="hidden" name="genres" value="{{ item.genres or '' }}">
+                                <input type="hidden" name="styles" value="{{ item.styles or '' }}">
+                                <input type="hidden" name="barcode" value="{{ item.barcode or '' }}">
+                                <input type="hidden" name="cover_url" value="{{ item.cover_url or '' }}">
+                            {% else %}
+                                <input type="hidden" name="google_id" value="{{ item.google_id or '' }}">
+                                <input type="hidden" name="title" value="{{ item.title }}">
+                                <input type="hidden" name="author" value="{{ item.author }}">
+                                <input type="hidden" name="year" value="{{ item.year or '' }}">
+                                <input type="hidden" name="summary" value="{{ item.summary or '' }}">
+                                <input type="hidden" name="cover_url" value="{{ item.cover_url or '' }}">
+                                <input type="hidden" name="isbn" value="{{ item.isbn or '' }}">
+                                <input type="hidden" name="page_count" value="{{ item.page_count or '' }}">
+                            {% endif %}
+                            <button type="submit">+ Ajouter</button>
+                        </form>
+                    </div>
+                </div>
+                {% endfor %}
+            </section>
+        {% endif %}
+    </main>
 </body>
 </html>

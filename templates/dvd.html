@@ -17,10 +17,11 @@
             <a href="{{ url_for('books_list') }}">Livres</a>
         </nav>
 
-        <a href="{{ url_for('add_dvd') }}" class="btn-add">+ Ajouter un DVD</a>
+        <a href="{{ url_for('add_page', type='dvd') }}" class="btn-add">+ Ajouter un DVD</a>
     </header>
 
     <main>
+        {% include "_flashes.html" %}
         <form method="GET" action="{{ url_for('index') }}" class="search-form filter-row" style="max-width: 720px;">
             <input type="text" name="q" placeholder="Film, acteur, réal..." value="{{ search }}" class="search-input">
 

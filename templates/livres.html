@@ -17,63 +17,13 @@
             <a href="{{ url_for('books_list') }}">Livres</a>
         </nav>
 
-        <a href="#ajouter-livre" class="btn-add">+ Ajouter un livre</a>
+        <a href="{{ url_for('add_page', type='livre') }}" class="btn-add">+ Ajouter un livre</a>
     </header>
 
     <main>
+        {% include "_flashes.html" %}
         {% if error %}
             <p class="error">{{ error }}</p>
-        {% endif %}
-
-        <section id="ajouter-livre" class="form-container page-search-box">
-            <h2>Ajouter un livre (Google Books)</h2>
-            <form method="POST" action="{{ url_for('books_list') }}">
-                <input type="hidden" name="action" value="search">
-                <input
-                    type="text"
-                    name="query"
-                    value="{{ query_text }}"
-                    placeholder="Titre, auteur ou ISBN (ex: 9782070360024)"
-                    required
-                >
-                <button type="submit">Rechercher sur Google Books</button>
-            </form>
-        </section>
-
-        {% if search_results %}
-            <h2 class="section-title">Résultats de recherche</h2>
-            <section class="grid-container" style="margin-bottom: 35px;">
-                {% for item in search_results %}
-                <div class="card">
-                    {% if item.cover_url %}
-                        <img src="{{ item.cover_url }}" alt="Couverture de {{ item.title }}" class="poster">
-                    {% endif %}
-                    <div class="card-info">
-                        <h3>{{ item.title }} {% if item.year %}<span class="year">({{ item.year }})</span>{% endif %}</h3>
-                        <p><strong>Auteur :</strong> {{ item.author }}</p>
-                        {% if item.page_count %}
-                            <p><strong>Pages :</strong> {{ item.page_count }}</p>
-                        {% endif %}
-                        {% if item.summary %}
-                            <p class="synopsis">{{ item.summary }}</p>
-                        {% endif %}
-
-                        <form method="POST" action="{{ url_for('books_list') }}">
-                            <input type="hidden" name="action" value="save">
-                            <input type="hidden" name="google_id" value="{{ item.google_id or '' }}">
-                            <input type="hidden" name="title" value="{{ item.title }}">
-                            <input type="hidden" name="author" value="{{ item.author }}">
-                            <input type="hidden" name="year" value="{{ item.year or '' }}">
-                            <input type="hidden" name="summary" value="{{ item.summary or '' }}">
-                            <input type="hidden" name="cover_url" value="{{ item.cover_url or '' }}">
-                            <input type="hidden" name="isbn" value="{{ item.isbn or '' }}">
-                            <input type="hidden" name="page_count" value="{{ item.page_count or '' }}">
-                            <button type="submit">+ Ajouter</button>
-                        </form>
-                    </div>
-                </div>
-                {% endfor %}
-            </section>
         {% endif %}
 
         <h2 class="section-title">Livres enregistrés ({{ books | length }})</h2>

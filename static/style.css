@@ -280,3 +280,47 @@ select {
         gap: 12px;
     }
 }
+
+/* Messages flash (ajout / suppression) */
+.flash-stack {
+    margin-bottom: 20px;
+}
+
+.flash {
+    background-color: #1b2530;
+    border-left: 4px solid #1a98ff;
+    border-radius: 5px;
+    padding: 12px 16px;
+    margin-bottom: 8px;
+}
+
+.flash-success {
+    border-left-color: #2ea043;
+}
+
+/* Choix du type de média sur la page « Ajouter » */
+.type-tabs {
+    display: flex;
+    gap: 10px;
+    justify-content: center;
+    margin-bottom: 25px;
+}
+
+.type-tabs a {
+    color: #cccccc;
+    text-decoration: none;
+    font-weight: bold;
+    padding: 8px 20px;
+    border-radius: 5px;
+    border: 1px solid #252e39;
+}
+
+.type-tabs a:hover {
+    color: #1a98ff;
+}
+
+.type-tabs a.is-active {
+    background-color: #1a98ff;
+    border-color: #1a98ff;
+    color: white;
+}
