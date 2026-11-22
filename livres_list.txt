@@ -1,0 +1,163 @@
+# Ma bibliothèque : une ligne par livre, au format « Titre - Auteur ».
+# Liste établie à partir des photos des étagères (titres lus sur les tranches).
+# Sans auteur, le script exige que le titre corresponde exactement.
+# Les lignes commençant par # sont ignorées ; « (à vérifier) » en fin de ligne est ignoré aussi.
+
+# --- Polars et thrillers
+La Forêt des Mânes - Jean-Christophe Grangé
+Le Passager - Jean-Christophe Grangé
+Puzzle - Franck Thilliez
+Fractures - Franck Thilliez
+La Chambre des morts - Franck Thilliez
+Angor - Franck Thilliez
+La Faille - Franck Thilliez
+Il était deux fois - Franck Thilliez
+Article 122-1 - David Messager
+La Mort n'attend pas - Peter James
+Jeux macabres - Erica Spindler
+Une femme sur la trace des serial killers - Micki Pistorius
+Femmes tueuses - Stéphane Bourgoin
+N'éteins pas la lumière - Bernard Minier
+Glacé - Bernard Minier
+L'Œuvre du mal - Karen Harper
+L'Homme du lac - Arnaldur Indridason
+Main courante - Didier Daeninckx
+
+# --- Aventure, espionnage, spiritualité
+Shogun - James Clavell
+Net Force - Tom Clancy
+Net Force 2 : Programmes fantômes - Tom Clancy
+Net Force 3 : Attaques de nuit - Tom Clancy
+Net Force 4 : Point de rupture - Tom Clancy
+Net Force 5 : Point d'impact - Tom Clancy
+Net Force 6 : Cybernation - Tom Clancy
+Net Force : Cyberpirates - Tom Clancy
+Net Force 8 : La Relève - Tom Clancy
+La Prophétie des Andes - James Redfield
+La Vision des Andes - James Redfield
+Manuel du guerrier de la lumière - Paulo Coelho
+
+# --- Guillaume Musso
+Demain - Guillaume Musso
+Central Park - Guillaume Musso
+La Vie est un roman - Guillaume Musso
+La Vie secrète des écrivains - Guillaume Musso
+La Fille de Brooklyn - Guillaume Musso
+La Jeune Fille et la Nuit - Guillaume Musso
+Un appartement à Paris - Guillaume Musso
+L'Inconnue de la Seine - Guillaume Musso
+L'Instant présent - Guillaume Musso
+Parce que je t'aime - Guillaume Musso
+Que serais-je sans toi ? - Guillaume Musso
+Sauve-moi - Guillaume Musso
+L'Appel de l'ange - Guillaume Musso
+Et après... - Guillaume Musso
+Seras-tu là ? - Guillaume Musso
+Je reviens te chercher - Guillaume Musso
+Angélique - Guillaume Musso
+Skidamarink - Guillaume Musso
+
+# --- Romans contemporains
+Et si c'était vrai... - Marc Levy
+Je dirai malgré tout que cette vie fut belle - Jean d'Ormesson
+Dalloway - Tatiana de Rosnay
+La Femme parfaite est une connasse ! - Anne-Sophie Girard et Marie-Aldine Girard
+Nous rêvions juste de liberté - Henri Lœvenbruck
+La Femme éclaboussée - Dominique Dyens
+Heureux les heureux - Yasmina Reza
+La Mécanique du cœur - Mathias Malzieu
+Women - Charles Bukowski
+Aucune rencontre n'arrive par hasard - Kay Pollak
+Demain j'arrête ! - Gilles Legardinier
+Et soudain tout change - Gilles Legardinier
+Complètement cramé ! - Gilles Legardinier
+Ressusciter - Christian Bobin
+Une nuit - Trinh Xuan Thuan
+
+# --- Classiques
+Les Contes du chat perché - Marcel Aymé
+Candide - Voltaire
+Contes du jour et de la nuit - Guy de Maupassant
+Pierre et Jean - Guy de Maupassant
+Le Voyage de Monsieur Perrichon - Eugène Labiche
+L'Aiguille creuse - Maurice Leblanc
+La Cicatrice - Bruce Lowery (auteur à vérifier)
+Britannicus - Racine
+Vipère au poing - Hervé Bazin
+La Mort est mon métier - Robert Merle
+Les Romans de la Table ronde
+Nouvelles histoires extraordinaires - Edgar Allan Poe
+L'Odyssée - Homère
+Le Vieil Homme et la Mer - Ernest Hemingway
+Thomas l'imposteur - Jean Cocteau
+L'Île des esclaves - Marivaux
+L'Ami retrouvé - Fred Uhlman
+Moby Dick - Herman Melville
+
+# --- Jeunesse
+Charlie et la chocolaterie - Roald Dahl
+Charlie et le grand ascenseur de verre - Roald Dahl
+Le Quidditch à travers les âges - Kennilworthy Whisp
+La Magie du cinéma
+Martine petit rat de l'opéra
+
+# --- Développement personnel et santé
+L'Homme qui voulait être heureux - Laurent Gounelle
+Le Jour où j'ai appris à vivre - Laurent Gounelle
+Votre temps est infini - Fabien Olicard
+Votre idée va devenir une réalité - Fabien Olicard
+10 clés pour un corps en bonne santé - Major Mouvement
+Le Grand Guide Major Mouvement pour soigner vos douleurs - Major Mouvement
+Le Traité des cinq roues - Miyamoto Musashi
+
+# --- Moto
+Passion Moto
+Les motos de sport et de compétition
+Atlas des motos du siècle
+Les motos de rêve
+Tuning motos - Marc Unau
+La Bible de la mécanique moto (auteur à vérifier)
+Entretenir et réparer sa moto - Jean-Pierre Nicolas
+
+# --- Photo, nature, culture, sport
+Le Manuel de la photographie numérique - Tom Ang
+Photo noir et blanc, étape par étape - John Beardsworth
+L'Art du portrait selon Studio Harcourt
+Islande : Entre feu et glace - Jean Hervoche
+Grand Atlas de l'Astronomie
+100 lieux à couper le souffle - Brice Gruet
+Les Indiens d'Amérique
+Le Grand Livre du vélo - Claire Beaumont et Ben Spurrier
+Construire, réparer son vélo
+Rugby : Une histoire du Mondial
+Te Patutiki - Teiki Huukena
+Secours au pays du Mont-Blanc
+Gendarmes : Au cœur de l'action - Christophe Dubois et Claude Dubois
+Concours de gendarme, catégorie C
+S'entraîner aux tests de sélection
+
+# --- Informatique, langues
+Apprendre à coder pour les débutants
+Machine Learning Pratique
+The C Programming Language - Brian W. Kernighan et Dennis M. Ritchie
+JavaScript
+PHP & MySQL pour les nuls
+HTML, XHTML & CSS pour les nuls
+L'électronique pour les nuls
+L'impression 3D pour les nuls
+Le russe pour les nuls
+Active Communication in English - A. Spratbrow
+
+# --- Guides de voyage
+Crète - Lonely Planet
+Rome - Lonely Planet
+Norvège - Le Routard
+Londres - Le Routard
+Tunisie - Petit Futé
+
+# --- Dans ton ancienne liste mais introuvables sur les photos (à remettre si tu les as)
+# L'Appel de la forêt - Jack London
+# Les Histoires extraordinaires - Edgar Allan Poe
+# Le Monde - Lonely Planet
+# Le Guide du voyage
+# Conquérir de nouvelles compétences
