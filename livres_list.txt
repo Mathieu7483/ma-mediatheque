@@ -107,9 +107,9 @@ L'Homme qui voulait être heureux - Laurent Gounelle - ISBN : 9782266186674, 226
 Le Jour où j'ai appris à vivre - Laurent Gounelle - ISBN : 9782366580990, 2366580991
 Votre temps est infini - Fabien Olicard - ISBN : 9782412052921, 2412052921
 Votre idée va devenir une réalité - Fabien Olicard - ISBN : 9782412089156, 2412089159
-10 clés pour un corps en bonne santé - Major Mouvement
-Le Grand Guide Major Mouvement pour soigner vos douleurs - Major Mouvement
-Le Traité des cinq roues - Miyamoto Musashi
+10 clés pour un corps en bonne santé - Major Mouvement - ISBN : 9782501156127, 2501156129
+Le Grand Guide Major Mouvement pour soigner vos douleurs - Major Mouvement - ISBN : 9782501174053, 2501174054
+Le Traité des cinq roues - Miyamoto Musashi - ISBN : 9798867910587
 
 # --- Moto
 Passion Moto
@@ -158,7 +158,6 @@ Tunisie - Petit Futé
 
 # --- Dans ton ancienne liste mais introuvables sur les photos (à remettre si tu les as)
 # L'Appel de la forêt - Jack London
-# Les Histoires extraordinaires - Edgar Allan Poe
 # Le Monde - Lonely Planet
 # Le Guide du voyage
 # Conquérir de nouvelles compétences
