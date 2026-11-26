@@ -4,38 +4,39 @@
 # Les lignes commençant par # sont ignorées ; « (à vérifier) » en fin de ligne est ignoré aussi.
 
 # --- Polars et thrillers
-La Forêt des Mânes - Jean-Christophe Grangé
-Le Passager - Jean-Christophe Grangé
+La Forêt des Mânes - Jean-Christophe Grangé - ISBN : 9782226200419, 222620041X
+Le Passager - Jean-Christophe Grangé - ISBN : 9782226260314, 2226260315
 Puzzle - Franck Thilliez
 Fractures - Franck Thilliez
 La Chambre des morts - Franck Thilliez
 Angor - Franck Thilliez
 La Faille - Franck Thilliez
 Il était deux fois - Franck Thilliez
-Article 122-1 - David Messager
-La Mort n'attend pas - Peter James
-Jeux macabres - Erica Spindler
-Une femme sur la trace des serial killers - Micki Pistorius
+Article 122-1 - David Messager - ISBN : 9782365690744, 2365690742
+La Mort n'attend pas - Peter James - ISBN-9782266227520
+Jeux macabres - Erica Spindler - ISBN : 9782280837897, 2280837897
+Micki Pistorius, une femme sur la trace des serial killers - Stéphane Bourgoin - SBN : 9782863919972, 2863919970
 Femmes tueuses - Stéphane Bourgoin
-N'éteins pas la lumière - Bernard Minier
-Glacé - Bernard Minier
-L'Œuvre du mal - Karen Harper
-L'Homme du lac - Arnaldur Indridason
-Main courante - Didier Daeninckx
+N'éteins pas la lumière - Bernard Minier - ISBN : 9782845637191, 2845637195
+Glacé - Bernard Minier -ISBN : 9782845635357, 2845635354
+L'Œuvre du mal - Karen Harper - ISBN : 9782280849951, 228084995X
+L'Homme du lac - Arnaldur Indridason - ISBN : 9782864247913, 2864247917
+Main courante - Didier Daeninckx - ISBN : 9782864321958, 2864321955
 
 # --- Aventure, espionnage, spiritualité
-Shogun - James Clavell
+Shogun - James Clavell - ISBN : 9788466376983, 8466376984
 Net Force - Tom Clancy
 Net Force 2 : Programmes fantômes - Tom Clancy
-Net Force 3 : Attaques de nuit - Tom Clancy
+Net Force 3 : Attaques de nuit - Tom Clancy - ISBN : 9782226115621, 2226115625
 Net Force 4 : Point de rupture - Tom Clancy
-Net Force 5 : Point d'impact - Tom Clancy
+Net Force 5 : Point d'impact - Tom Clancy - 
 Net Force 6 : Cybernation - Tom Clancy
 Net Force : Cyberpirates - Tom Clancy
 Net Force 8 : La Relève - Tom Clancy
+https://booknode.com/serie/net-force
 La Prophétie des Andes - James Redfield
-La Vision des Andes - James Redfield
-Manuel du guerrier de la lumière - Paulo Coelho
+La Vision des Andes - James Redfield 
+Manuel du guerrier de la lumière - Paulo Coelho - ISBN : 9782081347694, 2081347695
 
 # --- Guillaume Musso
 Demain - Guillaume Musso
@@ -45,12 +46,12 @@ La Vie secrète des écrivains - Guillaume Musso
 La Fille de Brooklyn - Guillaume Musso
 La Jeune Fille et la Nuit - Guillaume Musso
 Un appartement à Paris - Guillaume Musso
-L'Inconnue de la Seine - Guillaume Musso
-L'Instant présent - Guillaume Musso
-Parce que je t'aime - Guillaume Musso
+L'Inconnue de la Seine - Guillaume Musso - ISBN : 9782380200607, 2380200602
+L'Instant présent - Guillaume Musso - ISBN : 9782845637795, 2845637799
+Parce que je t'aime - Guillaume Musso - ISBN : 9782266179652, 2266179659
 Que serais-je sans toi ? - Guillaume Musso
 Sauve-moi - Guillaume Musso
-L'Appel de l'ange - Guillaume Musso
+L'Appel de l'ange - Guillaume Musso - ISBN : 9782266227537, 226622753X
 Et après... - Guillaume Musso
 Seras-tu là ? - Guillaume Musso
 Je reviens te chercher - Guillaume Musso
@@ -58,21 +59,21 @@ Angélique - Guillaume Musso
 Skidamarink - Guillaume Musso
 
 # --- Romans contemporains
-Et si c'était vrai... - Marc Levy
-Je dirai malgré tout que cette vie fut belle - Jean d'Ormesson
-Dalloway - Tatiana de Rosnay
-La Femme parfaite est une connasse ! - Anne-Sophie Girard et Marie-Aldine Girard
+Et si c'était vrai... - Marc Levy - ISBN : 9782266199544, 2266199544
+Je dirai malgré tout que cette vie fut belle - Jean d'Ormesson - ISBN : 9782072823886, 2072823889
+Dalloway - Tatiana de Rosnay - ISBN : 9782221241707, 2221241703
+La Femme parfaite est une connasse ! - Anne-Sophie Girard et Marie-Aldine Girard - ISBN : 9782290073568, 2290073563
 Nous rêvions juste de liberté - Henri Lœvenbruck
 La Femme éclaboussée - Dominique Dyens
-Heureux les heureux - Yasmina Reza
-La Mécanique du cœur - Mathias Malzieu
+Heureux les heureux - Yasmina Reza - ISBN : 9782286096007, 2286096007
+La Mécanique du cœur - Mathias Malzieu - ISBN : 9782290012451, 2290012459
 Women - Charles Bukowski
-Aucune rencontre n'arrive par hasard - Kay Pollak
-Demain j'arrête ! - Gilles Legardinier
+Aucune rencontre n'arrive par hasard - Kay Pollak - ISBN : 9782889059409, 2889059405
+Demain j'arrête ! - Gilles Legardinier - ISBN : 9782749941868, 2749941865
 Et soudain tout change - Gilles Legardinier
-Complètement cramé ! - Gilles Legardinier
+Complètement cramé ! - Gilles Legardinier - ISBN : 9782385770181, 2385770180
 Ressusciter - Christian Bobin
-Une nuit - Trinh Xuan Thuan
+Une nuit - Trinh Xuan Thuan - ISBN : 9791095438472
 
 # --- Classiques
 Les Contes du chat perché - Marcel Aymé
@@ -81,7 +82,7 @@ Contes du jour et de la nuit - Guy de Maupassant
 Pierre et Jean - Guy de Maupassant
 Le Voyage de Monsieur Perrichon - Eugène Labiche
 L'Aiguille creuse - Maurice Leblanc
-La Cicatrice - Bruce Lowery (auteur à vérifier)
+La Cicatrice - Bruce Lowery
 Britannicus - Racine
 Vipère au poing - Hervé Bazin
 La Mort est mon métier - Robert Merle
@@ -95,17 +96,17 @@ L'Ami retrouvé - Fred Uhlman
 Moby Dick - Herman Melville
 
 # --- Jeunesse
-Charlie et la chocolaterie - Roald Dahl
-Charlie et le grand ascenseur de verre - Roald Dahl
+Charlie et la chocolaterie - Roald Dahl - 9782075039291, 2075039291
+Charlie et le grand ascenseur de verre - Roald Dahl - ISBN : 9782070330652, 2070330656
 Le Quidditch à travers les âges - Kennilworthy Whisp
-La Magie du cinéma
+le monde des sorciers de JK Rowling La Magie du cinéma
 Martine petit rat de l'opéra
 
 # --- Développement personnel et santé
-L'Homme qui voulait être heureux - Laurent Gounelle
-Le Jour où j'ai appris à vivre - Laurent Gounelle
-Votre temps est infini - Fabien Olicard
-Votre idée va devenir une réalité - Fabien Olicard
+L'Homme qui voulait être heureux - Laurent Gounelle - ISBN : 9782266186674, 2266186671
+Le Jour où j'ai appris à vivre - Laurent Gounelle - ISBN : 9782366580990, 2366580991
+Votre temps est infini - Fabien Olicard - ISBN : 9782412052921, 2412052921
+Votre idée va devenir une réalité - Fabien Olicard - ISBN : 9782412089156, 2412089159
 10 clés pour un corps en bonne santé - Major Mouvement
 Le Grand Guide Major Mouvement pour soigner vos douleurs - Major Mouvement
 Le Traité des cinq roues - Miyamoto Musashi
