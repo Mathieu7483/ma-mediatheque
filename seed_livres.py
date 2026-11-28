@@ -35,18 +35,30 @@ NOTE_PATTERN = re.compile(r"\s*\([^)]*(?:confirmer|v[ée]rifier)[^)]*\)\s*$", re
 PLACEHOLDER_AUTHORS = ("auteur non lisible", "auteur collectif", "anonyme", "inconnu")
 
 
-ISBN_PATTERN = re.compile(r"(?:\s*[-\t]\s*|\s+)((?:97[89][-\s]?)?(?:\d[-\s]?){9}[\dXx])\s*$")
+ISBN_LABEL = re.compile(r"\s*(?:[-\t]\s*)?\bISBN(?:-1[03])?\s*[:=]?\s*(?P<codes>[\dXx][\dXx\s,;/-]*)\s*$", re.IGNORECASE)
+ISBN_PLAIN = re.compile(r"(?:\s*[-\t]\s*|\s+)(?P<codes>(?:97[89][-\s]?)?(?:\d[-\s]?){9}[\dXx])\s*$")
 
 
-def split_isbn(line: str) -> tuple[str, str | None]:
-    """Détache un ISBN placé en fin de ligne (« Glacé - Bernard Minier - 9782845635357 »)."""
-    match = ISBN_PATTERN.search(line)
+def split_isbn(line: str) -> tuple[str, list[str]]:
+    """Détache les ISBN placés en fin de ligne. Formats acceptés :
+        Glacé - Bernard Minier - 9782845635357
+        Glacé - Bernard Minier - ISBN : 9782845635357, 2845635354
+    Retourne (ligne sans ISBN, liste d'ISBN valides : 10 ou 13 chiffres)."""
+    match = ISBN_LABEL.search(line) or ISBN_PLAIN.search(line)
     if not match:
-        return line, None
-    digits = re.sub(r"[-\s]", "", match.group(1)).upper()
-    if len(digits) not in (10, 13):
-        return line, None
-    return line[:match.start()].strip(), digits
+        return line, []
+    text = match.group("codes")
+    codes = []
+    for m in re.finditer(r"97[89](?:[-\s]?\d){10}", text):          # ISBN-13 d'abord
+        codes.append(re.sub(r"[-\s]", "", m.group(0)))
+    text = re.sub(r"97[89](?:[-\s]?\d){10}", " ", text)
+    for chunk in re.split(r"[,;/\s]+", text):                        # puis les ISBN-10
+        digits = chunk.replace("-", "").upper()
+        if len(digits) == 10 and re.fullmatch(r"\d{9}[\dX]", digits) and digits not in codes:
+            codes.append(digits)
+    if not codes:
+        return line, []
+    return line[:match.start()].strip(), codes
 
 
 def split_title_author(line: str) -> tuple[str, str]:
@@ -80,6 +92,10 @@ def search_with_patience(query: str) -> list[dict]:
                 # books_service.py ancien (sans fallback_on_error) : appel simple
                 return search_book(query=query, max_results=5, lang="fr")
         except requests.RequestException as exc:
+            status = getattr(getattr(exc, "response", None), "status_code", None)
+            if status in (400, 401, 403) and attempt < 3:
+                # Erreur de configuration, pas de limitation : attendre ne sert à rien
+                return search_book(query=query, max_results=5, lang="fr", fallback_on_error=True)
             if attempt == 3:
                 raise
             wait = 20 * attempt
@@ -136,17 +152,21 @@ def main() -> int:
     consecutive_errors = 0
 
     for index, line in enumerate(lines, 1):
-        line, isbn = split_isbn(NOTE_PATTERN.sub("", line).strip())
+        line, isbns = split_isbn(NOTE_PATTERN.sub("", line).strip())
         title, author = split_title_author(line)
-        print(f"[{index}/{len(lines)}] {title}" + (f" - {author}" if author else "") + (f" [ISBN {isbn}]" if isbn else ""))
+        print(f"[{index}/{len(lines)}] {title}" + (f" - {author}" if author else "") + (f" [ISBN {', '.join(isbns)}]" if isbns else ""))
         clean_line = f"{title} - {author}" if author else title
 
         best = None
         reason = "recherche en ligne désactivée"
         if not api_down:
             try:
-                results = search_with_patience(isbn) if isbn else []
-                by_isbn = bool(results)
+                results, by_isbn = [], False
+                for code in isbns:
+                    results = search_with_patience(code)
+                    if results:
+                        by_isbn = True
+                        break
                 if not results:
                     results = search_with_patience(f"{title} {author}".strip())
                 consecutive_errors = 0
@@ -195,7 +215,7 @@ def main() -> int:
 
             entry = {
                 "google_id": None, "title": title, "author": author or "Auteur inconnu", "year": None,
-                "summary": "Aucun résumé disponible.", "cover_url": None, "isbn": isbn, "page_count": None,
+                "summary": "Aucun résumé disponible.", "cover_url": None, "isbn": (isbns[0] if isbns else None), "page_count": None,
             }
             if not args.dry_run:
                 db.add_book(entry)
