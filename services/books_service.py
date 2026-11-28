@@ -12,6 +12,7 @@ MAX_RETRIES = 2          # nombre de nouvelles tentatives après un 429 / 5xx
 CACHE_TTL_SECONDS = 600  # 10 min : évite de re-solliciter l'API pour la même recherche
 
 _HEADERS = {"User-Agent": os.getenv("BOOKS_USER_AGENT", "MathieuMediatheque/1.0")}
+_key_warned = False
 _cache: dict[tuple[str, int, str], tuple[float, list[dict[str, Any]]]] = {}
 
 
@@ -80,7 +81,23 @@ def _search_google_books(q_param: str, max_results: int, lang: str | None) -> li
     if api_key:
         params["key"] = api_key
 
-    payload = _get_with_retry(GOOGLE_BOOKS_URL, params).json()
+    global _key_warned
+    try:
+        payload = _get_with_retry(GOOGLE_BOOKS_URL, params).json()
+    except requests.HTTPError as exc:
+        # 400/403 avec une clé : clé invalide, API « Books » non activée ou clé restreinte.
+        # On réessaie sans clé plutôt que de tout bloquer.
+        status = exc.response.status_code if exc.response is not None else None
+        if "key" in params and status in (400, 403):
+            if not _key_warned:
+                print(f"[Google Books] clé API refusée (HTTP {status}) : vérifie qu'elle est valide, que "
+                      "l'API « Books API » est activée dans Google Cloud et que la clé n'est pas restreinte. "
+                      "Poursuite sans clé.")
+                _key_warned = True
+            params.pop("key")
+            payload = _get_with_retry(GOOGLE_BOOKS_URL, params).json()
+        else:
+            raise
 
     results: list[dict[str, Any]] = []
     for item in payload.get("items") or []:
