@@ -66,13 +66,15 @@ def _get_with_retry(url: str, params: dict[str, Any]) -> requests.Response:
     return response
 
 
-def _search_google_books(q_param: str, max_results: int, lang: str) -> list[dict[str, Any]]:
+def _search_google_books(q_param: str, max_results: int, lang: str | None) -> list[dict[str, Any]]:
     params: dict[str, Any] = {
         "q": q_param,
         "maxResults": max(1, min(max_results, 40)),
         "printType": "books",
-        "langRestrict": lang,
     }
+    # langRestrict écarte les éditions dont la langue n'est pas renseignée : on l'évite pour un ISBN
+    if lang:
+        params["langRestrict"] = lang
     # Sans clé, le quota Google est partagé par IP et saturé très vite (429).
     api_key = os.getenv("GOOGLE_BOOKS_API_KEY")
     if api_key:
@@ -133,13 +135,36 @@ def _search_open_library(q_param: str, max_results: int) -> list[dict[str, Any]]
     return results
 
 
-def search_book(query: str, max_results: int = 1, lang: str = "fr") -> list[dict[str, Any]]:
+def normalize_isbn(text: str) -> str | None:
+    """Retourne l'ISBN nettoyé (sans tirets/espaces) si le texte en est un, sinon None."""
+    cleaned = re.sub(r"[-\s]", "", text or "")
+    return cleaned.upper() if re.fullmatch(r"\d{13}|\d{9}[\dXx]|\d{10}", cleaned) else None
+
+
+def isbn_variants(isbn: str) -> list[str]:
+    """ISBN-13 et ISBN-10 du même livre : Google n'en connaît parfois qu'un des deux."""
+    if len(isbn) == 10:
+        core = "978" + isbn[:9]
+        check = (10 - sum(int(d) * (1 if i % 2 == 0 else 3) for i, d in enumerate(core)) % 10) % 10
+        return [core + str(check), isbn]
+    if len(isbn) == 13 and isbn.startswith("978"):
+        core = isbn[3:12]
+        total = sum(int(d) * (10 - i) for i, d in enumerate(core))
+        check = (11 - total % 11) % 11
+        return [isbn, core + ("X" if check == 10 else str(check))]
+    return [isbn]
+
+
+def search_book(query: str, max_results: int = 1, lang: str = "fr",
+                fallback_on_error: bool = True) -> list[dict[str, Any]]:
     """
     Recherche un livre par titre, auteur ou ISBN.
 
-    Google Books en premier (avec retry sur 429), puis Open Library en repli.
+    Google Books en premier (avec retry sur 429), puis Open Library en repli quand Google
+    ne trouve rien. Si Google est en ERREUR (429, panne) : repli sur Open Library, sauf si
+    fallback_on_error=False, auquel cas l'erreur est propagée (utile pour un import en masse :
+    une limitation de Google ne doit pas être prise pour « livre introuvable »).
     Les résultats sont gardés en cache quelques minutes.
-    Lève requests.RequestException seulement si les deux services échouent.
     """
     cleaned_query = query.strip()
     if not cleaned_query:
@@ -150,20 +175,34 @@ def search_book(query: str, max_results: int = 1, lang: str = "fr") -> list[dict
     if cached and time.time() - cached[0] < CACHE_TTL_SECONDS:
         return cached[1]
 
-    # Si l'utilisateur saisit un ISBN (10 ou 13 chiffres avec éventuels tirets/espaces)
-    normalized_isbn = re.sub(r"[-\s]", "", cleaned_query)
-    if re.fullmatch(r"(?:\d{10}|\d{13}|\d{9}[\dXx])", normalized_isbn):
-        q_param = f"isbn:{normalized_isbn}"
-    else:
-        q_param = cleaned_query
+    isbn = normalize_isbn(cleaned_query)
 
+    results: list[dict[str, Any]] | None = None
     try:
-        results = _search_google_books(q_param, max_results, lang)
-        # Google ne trouve rien : on tente Open Library avant de conclure
-        if not results:
-            results = _search_open_library(q_param, max_results)
+        if isbn:
+            # Recherche exacte, sans restriction de langue, avec les deux formes de l'ISBN
+            for variant in isbn_variants(isbn):
+                results = _search_google_books(f"isbn:{variant}", max_results, None)
+                if results:
+                    break
+        else:
+            results = _search_google_books(cleaned_query, max_results, lang)
+            if not results:
+                results = _search_google_books(cleaned_query, max_results, None)
     except requests.RequestException:
-        results = _search_open_library(q_param, max_results)
+        if not fallback_on_error:
+            raise
+        results = None  # Google en échec
+
+    if not results:  # None (échec de Google) ou [] (rien trouvé) : on tente Open Library
+        if isbn:
+            results = []
+            for variant in isbn_variants(isbn):
+                results = _search_open_library(f"isbn:{variant}", max_results)
+                if results:
+                    break
+        else:
+            results = _search_open_library(cleaned_query, max_results)
 
     if results:
         _cache[cache_key] = (time.time(), results)
