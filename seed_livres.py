@@ -2,6 +2,7 @@
 
 Formats de ligne acceptés :
     Titre - Auteur
+    Titre - Auteur - ISBN       (ISBN facultatif, 10 ou 13 chiffres : recherche exacte, la plus fiable)
     Titre<TAB>Auteur            (tabulation, comme dans un copier-coller depuis un tableur)
     Titre                       (sans auteur : moins précis, le titre doit alors correspondre exactement)
 
@@ -32,6 +33,20 @@ from seed_common import (
 # « (à confirmer) », « (titre à vérifier) »... en fin de ligne : des notes personnelles, pas des données
 NOTE_PATTERN = re.compile(r"\s*\([^)]*(?:confirmer|v[ée]rifier)[^)]*\)\s*$", re.IGNORECASE)
 PLACEHOLDER_AUTHORS = ("auteur non lisible", "auteur collectif", "anonyme", "inconnu")
+
+
+ISBN_PATTERN = re.compile(r"(?:\s*[-\t]\s*|\s+)((?:97[89][-\s]?)?(?:\d[-\s]?){9}[\dXx])\s*$")
+
+
+def split_isbn(line: str) -> tuple[str, str | None]:
+    """Détache un ISBN placé en fin de ligne (« Glacé - Bernard Minier - 9782845635357 »)."""
+    match = ISBN_PATTERN.search(line)
+    if not match:
+        return line, None
+    digits = re.sub(r"[-\s]", "", match.group(1)).upper()
+    if len(digits) not in (10, 13):
+        return line, None
+    return line[:match.start()].strip(), digits
 
 
 def split_title_author(line: str) -> tuple[str, str]:
@@ -121,15 +136,19 @@ def main() -> int:
     consecutive_errors = 0
 
     for index, line in enumerate(lines, 1):
+        line, isbn = split_isbn(NOTE_PATTERN.sub("", line).strip())
         title, author = split_title_author(line)
-        print(f"[{index}/{len(lines)}] {title}" + (f" - {author}" if author else ""))
+        print(f"[{index}/{len(lines)}] {title}" + (f" - {author}" if author else "") + (f" [ISBN {isbn}]" if isbn else ""))
         clean_line = f"{title} - {author}" if author else title
 
         best = None
         reason = "recherche en ligne désactivée"
         if not api_down:
             try:
-                results = search_with_patience(f"{title} {author}".strip())
+                results = search_with_patience(isbn) if isbn else []
+                by_isbn = bool(results)
+                if not results:
+                    results = search_with_patience(f"{title} {author}".strip())
                 consecutive_errors = 0
             except requests.RequestException as exc:
                 consecutive_errors += 1
@@ -148,7 +167,9 @@ def main() -> int:
                     reason = "aucun résultat"
                 else:
                     candidate, sure = pick_best(results, title, author, "author")
-                    if not author:
+                    if by_isbn:
+                        sure = True  # l'ISBN identifie le livre sans ambiguïté
+                    elif not author:
                         # Sans auteur pour recouper, on exige le titre exact (évite un autre livre au titre voisin)
                         sure = tokens(title) == tokens(candidate["title"])
                     if sure or args.accepter_incertains:
@@ -174,7 +195,7 @@ def main() -> int:
 
             entry = {
                 "google_id": None, "title": title, "author": author or "Auteur inconnu", "year": None,
-                "summary": "Aucun résumé disponible.", "cover_url": None, "isbn": None, "page_count": None,
+                "summary": "Aucun résumé disponible.", "cover_url": None, "isbn": isbn, "page_count": None,
             }
             if not args.dry_run:
                 db.add_book(entry)
